@@ -1,0 +1,30 @@
+
+spring:
+    datasource:
+        driver-class-name: com.mysql.jdbc.Driver
+        url: jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&charactMpGeneratorerEncoding=utf8&allowMultiQueries=true&useSSL=false
+        username: root
+        password: admin
+        type: com.zaxxer.hikari.HikariDataSource
+        hikari:
+            minimum-idle: 5
+            maximum-pool-size: 100
+            auto-commit: true
+            idle-timeout: 30000
+            pool-name: DatebookHikariCP
+            max-lifetime: 1800000
+            connection-timeout: 30000
+            connection-test-query: SELECT 1
+
+
+#mybatisPlus
+mybatis-plus:
+    mapper-locations: classpath:/mapper/*.xml
+    typeAliasesPackage: com.itheima.data.pojo
+    global-config:
+        db-config:
+            db-type: MYSQL
+        id-type: 2  #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
+        field-strategy: 0  #字段策略 0:"忽略判断",1:"非 NULL 判断"),2:"非空判断"
+        db-column-underline: true  #驼峰下划线转换
+        refresh-mapper: true  #刷新mapper 调试神器

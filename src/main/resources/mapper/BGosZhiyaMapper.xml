@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.data.mapper.BGosZhiyaDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.itheima.data.pojo.BGosZhiyaEntity">
+        <id column="id" property="id" />
+        <result column="txHash" property="txHash" />
+        <result column="number" property="number" />
+        <result column="fromAddr" property="fromAddr" />
+        <result column="toAddr" property="toAddr" />
+        <result column="value" property="value" />
+        <result column="valueToString" property="valueToString" />
+        <result column="tokenName" property="tokenName" />
+        <result column="tokenSymbol" property="tokenSymbol" />
+        <result column="tokenType" property="tokenType" />
+        <result column="decimals" property="decimals" />
+        <result column="timestamp" property="timestamp" />
+        <result column="address" property="address" />
+        <result column="logIndex" property="logIndex" />
+        <result column="out_or_in" property="outOrIn" />
+    </resultMap>
+
+</mapper>
