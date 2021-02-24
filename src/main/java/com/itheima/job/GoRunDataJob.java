@@ -28,7 +28,7 @@ public class GoRunDataJob {
         System.out.println("最新id========"+descId);
         int pageNo=1;
 
-        int pageSize=5;
+        int pageSize=6;
 
         String outOrIn = "out";
         AtomicReference<Boolean> isLatestId = new AtomicReference<>(false);
