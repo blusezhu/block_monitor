@@ -1,11 +1,9 @@
 package com.itheima.utils;
 
+import com.alibaba.fastjson.JSONObject;
 import com.sun.mail.util.MailSSLSocketFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -183,5 +181,31 @@ public class MailUtil {
         tp.sendMessage(mimeMessage,mimeMessage.getAllRecipients());
         //6.关闭连接
         tp.close();
+    }
+
+    public static Map<String, Object> getEmailSettingMap(JSONObject jsondata, Map<String,Object> map) {
+        map.put("host",jsondata.getString("host"));
+        map.put("from",jsondata.getString("from"));
+        map.put("password",jsondata.getString("password"));
+        //发送内容配置
+        map.put("datasrc","src/resource/fujian/dh.jpg");
+        map.put("contentid","dh.jpg");
+
+
+        map.put("to","zizijie_2021@qq.com");
+        //map.put("to","156321781@qq.com");
+       // map.put("title","gos 大额质押进出提醒");
+        //附件部分
+        Map<String,String> mapfj = new HashMap<String, String>();
+        // mapfj.put("filesrc","src/resource/fujian/spring.xml");
+        // mapfj.put("filename","spring.xml");
+        Map<String,String> mapfj1 = new HashMap<String, String>();
+        //mapfj1.put("filesrc","src/resource/fujian/1.txt");
+        //mapfj1.put("filename","1.txt");
+        List<Map<String,String>> list = new ArrayList<Map<String,String>>();
+        // list.add(mapfj);
+        list.add(mapfj1);
+        map.put("fujian", list);
+        return map;
     }
 }

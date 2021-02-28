@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * <p>
- *  服务实现类
+ * 服务实现类
  * </p>
  *
  * @author zzj
@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class BGosZhiyaServiceImpl extends ServiceImpl<BGosZhiyaDao, BGosZhiyaEntity> implements BGosZhiyaService {
     @Autowired
     private HttpUtil httpUtil;
+
     @Override
     public void getDataAndSave(int pageNo, int pageSize, String outOrIn, Integer desId, AtomicReference<Boolean> isLatestId) {
 
@@ -43,26 +44,25 @@ public class BGosZhiyaServiceImpl extends ServiceImpl<BGosZhiyaDao, BGosZhiyaEnt
             return;
         }*/
 
-        if (isLatestId.get()){
+        if (isLatestId.get()) {
             log.info("最新记录拉取完毕！");
             return;
         }
 
         String gosUrl = getGosUrl(pageNo, pageSize, outOrIn);
-        log.info("请求url={}",gosUrl);
-
+        log.info("请求url={}", gosUrl);
 
 
         //String result = httpsReques(gosUrl,"","utf-8");
         String result = httpUtil.getHtml(gosUrl);
         JSONObject resultJson = JSON.parseObject(result);
-        int status =(int )resultJson.get("status");
+        int status = (int) resultJson.get("status");
         if (status == 1) {
             log.info("获取数据成功！-----第{}页", pageNo);
             JSONObject data = resultJson.getJSONObject("data");
             JSONArray dataJSONArray = data.getJSONArray("data");
             List<BGosZhiyaEntity> bGosZhiyaEntities = new ArrayList<>();
-            dataJSONArray.forEach(o->{
+            dataJSONArray.forEach(o -> {
                 JSONObject jsonObj = (JSONObject) o;
                 BGosZhiyaEntity bGosZhiyaEntity = new BGosZhiyaEntity();
                 bGosZhiyaEntity.setId(jsonObj.getInteger("id"));
@@ -103,68 +103,55 @@ public class BGosZhiyaServiceImpl extends ServiceImpl<BGosZhiyaDao, BGosZhiyaEnt
 
             saveOrUpdateBatch(bGosZhiyaEntities);
             log.info("获取数据保存成功！-----第{}页", pageNo);
-            getDataAndSave(pageNo+=1, pageSize, outOrIn,desId, isLatestId);
+            getDataAndSave(pageNo += 1, pageSize, outOrIn, desId, isLatestId);
         } else {
-            log.info("获取数据失败！-----第{}页 result={}",pageNo,resultJson);
+            log.info("获取数据失败！-----第{}页 result={}", pageNo, resultJson);
         }
 
 
     }
 
     private void chackSendMail(List<BGosZhiyaEntity> bGosZhiyaEntities) {
-       bGosZhiyaEntities.forEach(o->{
-           if (o.getValueToString().abs().compareTo(new BigDecimal("10")) > 0) {
-               Map<String,Object> map = getMailMap(ConfigCenter.getMailSenderInfo(),o);
-               try {
-                   MailUtil.sendMail(map, false, false);
-               } catch (Exception e) {
-                   e.printStackTrace();
-               }
-           }
-       });
+        bGosZhiyaEntities.forEach(o -> {
+            if (o.getValueToString().abs().compareTo(new BigDecimal("10")) > 0) {
+                Map<String, Object> map = getMailMap(ConfigCenter.getMailSenderInfo(), o);
+                try {
+                    MailUtil.sendMail(map, false, false);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
     }
 
 
-    public String getGosUrl(int pageNo, int pgeSize,String outOrIn) {
-        return "https://api-scan.hecochain.com/hsc/listTx/0x24ebe1f560b0ee086bb2986042388bf9a5c04725/0x3bb34419a8e7d5e5c68b400459a8ec1affe9c56e/"+outOrIn+"/"+pageNo+"/"+pgeSize+"?x-b3-traceid=d729bf36b27491299ff0f103d6611f56";
+    public String getGosUrl(int pageNo, int pgeSize, String outOrIn) {
+        return "https://api-scan.hecochain.com/hsc/listTx/0x24ebe1f560b0ee086bb2986042388bf9a5c04725/0x3bb34419a8e7d5e5c68b400459a8ec1affe9c56e/" + outOrIn + "/" + pageNo + "/" + pgeSize + "?x-b3-traceid=d729bf36b27491299ff0f103d6611f56";
     }
 
 
-    public static Map<String,Object> getMailMap(JSONObject jsondata, BGosZhiyaEntity o){
+    public static Map<String, Object> getMailMap(JSONObject jsondata, BGosZhiyaEntity o) {
+        HashMap<String, Object> map = new HashMap<>();
+        String title = "";
+
         String content = "";
         if (o.getOutOrIn().equals("in")) {
-            content=" gos 大额 【转入】 质押 【"+o.getValueToString()+"】枚，钱包地址= "+o.getFromAddr()+"时间 【"+DateUtil.getStringByTime(o.getTimestamp())+"】";
-        }else {
-            content=" gos 大额 【转出】 质押 【"+o.getValueToString()+"】枚，钱包地址= "+o.getToAddr()+"时间 【"+DateUtil.getStringByTime(o.getTimestamp())+"】";
+            content = " gos 大额 【转入】 质押 【" + o.getValueToString() + "】枚，钱包地址= " + o.getFromAddr() + "时间 【" + DateUtil.getStringByTime(o.getTimestamp()) + "】";
+            title = "gos 质押 大额【转入】【" + o.getValueToString() + "】枚";
+        } else {
+            content = " gos 大额 【转出】 质押 【" + o.getValueToString() + "】枚，钱包地址= " + o.getToAddr() + "时间 【" + DateUtil.getStringByTime(o.getTimestamp()) + "】";
+            title = "gos 质押 大额【转出】【" + o.getValueToString() + "】枚";
         }
-        log.info("发送邮件 ："+content);
-        //发送方信息配置
-        Map<String,Object> map = new HashMap<String, Object>();
-        map.put("host",jsondata.getString("host"));
-        map.put("from",jsondata.getString("from"));
-        map.put("password",jsondata.getString("password"));
-        //发送内容配置
-        map.put("datasrc","src/resource/fujian/dh.jpg");
-        map.put("contentid","dh.jpg");
-
+        log.info("发送邮件 ：" + content);
+        map.put("title", title);
         map.put("content",content);
-        //map.put("to","zizijie_2021@qq.com");
-        map.put("to","156321781@qq.com");
-        map.put("title","gos 大额质押进出提醒");
-        //附件部分
-        Map<String,String> mapfj = new HashMap<String, String>();
-        // mapfj.put("filesrc","src/resource/fujian/spring.xml");
-        // mapfj.put("filename","spring.xml");
-        Map<String,String> mapfj1 = new HashMap<String, String>();
-        //mapfj1.put("filesrc","src/resource/fujian/1.txt");
-        //mapfj1.put("filename","1.txt");
-        List<Map<String,String>> list = new ArrayList<Map<String,String>>();
-        // list.add(mapfj);
-        list.add(mapfj1);
-        map.put("fujian", list);
-        return map;
+        //发送方信息配置
+        return MailUtil.getEmailSettingMap(jsondata, map);
+
     }
+
+
    /* public  String httpsReques(String url, String map, String charset) {
         SocketConfig socketConfig = SocketConfig.custom().setSoTimeout(5000).build();
         org.apache.http.client.HttpClient httpClient = null;

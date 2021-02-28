@@ -21,14 +21,14 @@ public class GoRunDataJob {
     private HashSet<Integer> isSendMail=new HashSet<>();
 
    // @Scheduled(cron = "0 0/1  * * * ?")
-    @Scheduled(cron = "*/10 * * * * ?")
+    @Scheduled(cron = "*/3 * * * * ?")
     public void getGosZhiYaData() {
 
         Integer descId = bGosZhiyaService.query().orderByDesc("id").list().get(0).getId();
         System.out.println("最新id========"+descId);
         int pageNo=1;
 
-        int pageSize=6;
+        int pageSize=5;
 
         String outOrIn = "out";
         AtomicReference<Boolean> isLatestId = new AtomicReference<>(false);
@@ -40,7 +40,7 @@ public class GoRunDataJob {
 
     }
 
-    @Scheduled(cron = "*/5 * * * * ?")
+    @Scheduled(cron = "*/1 * * * * ?")
     public void getGosLpData() {
         log.info("==========>LP 监控开始==============================");
 

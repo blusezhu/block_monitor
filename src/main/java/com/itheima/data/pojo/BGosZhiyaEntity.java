@@ -58,6 +58,19 @@ public class BGosZhiyaEntity extends Model<BGosZhiyaEntity> {
 
     private String outOrIn;
 
+    /**
+     * 交易还是流动性  true-交易  false-流动性
+     */
+    @TableField(exist = false)
+    private  boolean isTranOrLp;
+
+    public boolean isTranOrLp() {
+        return isTranOrLp;
+    }
+
+    public void setTranOrLp(boolean tranOrLp) {
+        isTranOrLp = tranOrLp;
+    }
 
     public Integer getId() {
         return id;

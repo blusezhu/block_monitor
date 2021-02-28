@@ -86,7 +86,9 @@ public class BGosLpServiceImpl extends ServiceImpl<BGosZhiyaDao, BGosZhiyaEntity
 
     private void chackSendMail(List<BGosZhiyaEntity> bGosZhiyaEntities, HashSet<Integer> isSendMail) {
        bGosZhiyaEntities.forEach(o->{
-           if (o.getValueToString().abs().compareTo(new BigDecimal("10")) > 0) {
+           if (o.getValueToString().abs().compareTo(new BigDecimal("1")) > 0) {
+               boolean isTranOrLp=getIsTranOrLp(o);
+               o.setTranOrLp(isTranOrLp);
                Map<String,Object> map = getMailMap(ConfigCenter.getMailSenderInfo(),o);
                try {
                    MailUtil.sendMail(map, false, false);
@@ -106,38 +108,52 @@ public class BGosLpServiceImpl extends ServiceImpl<BGosZhiyaDao, BGosZhiyaEntity
 
 
     public static Map<String,Object> getMailMap(JSONObject jsondata, BGosZhiyaEntity o){
+        HashMap<String,Object> map = new HashMap<>();
+
         String content = "";
+        String title = "";
+
         if (o.getOutOrIn().equals("in")) {
-            content=" gos 大额 【转入】 lp 【"+o.getValueToString()+"】枚，钱包地址= "+o.getFromAddr()+"时间 【"+DateUtil.getStringByTime(o.getTimestamp())+"】";
+            content=" gos 大额 【转入】钱包地址  【"+o.getFromAddr()+"】，转入地址= 【"+o.getToAddr()+"】交易哈希 【"+
+                    o.getTxHash()+"】时间 【"+DateUtil.getStringByTime(o.getTimestamp())+"】";
+            if (o.isTranOrLp()) {
+                title = "gos 【卖出】 gos 【" + o.getValueToString() + "】枚 ";
+            } else {
+                title = "gos lp 【转入】  【" + o.getValueToString() + "】枚 ";
+            }
         }else {
-            content=" gos 大额 【转出】 lp 【"+o.getValueToString()+"】枚，钱包地址= "+o.getToAddr()+"时间 【"+DateUtil.getStringByTime(o.getTimestamp())+"】";
+            content=" gos 大额 【转出】 转出钱包地址 【"+o.getToAddr()+"】，from地址= 【"+o.getFromAddr()+"】交易哈希 【"+
+                    o.getTxHash()+"】时间 【"+DateUtil.getStringByTime(o.getTimestamp())+"】";
+            if (o.isTranOrLp()) {
+                title = "gos 【买入】 gos 【" + o.getValueToString() + "】枚 ";
+            } else {
+                title = "gos lp 【转入】  【" + o.getValueToString() + "】枚 ";
+            }
         }
         log.info("发送邮件 ："+content);
-        //发送方信息配置
-        Map<String,Object> map = new HashMap<String, Object>();
-        map.put("host",jsondata.getString("host"));
-        map.put("from",jsondata.getString("from"));
-        map.put("password",jsondata.getString("password"));
-        //发送内容配置
-        map.put("datasrc","src/resource/fujian/dh.jpg");
-        map.put("contentid","dh.jpg");
 
+        map.put("title",title);
         map.put("content",content);
-        //map.put("to","zizijie_2021@qq.com");
-        map.put("to","156321781@qq.com");
-        map.put("title","gos 大额lp 交易进出提醒");
-        //附件部分
-        Map<String,String> mapfj = new HashMap<String, String>();
-        // mapfj.put("filesrc","src/resource/fujian/spring.xml");
-        // mapfj.put("filename","spring.xml");
-        Map<String,String> mapfj1 = new HashMap<String, String>();
-        //mapfj1.put("filesrc","src/resource/fujian/1.txt");
-        //mapfj1.put("filename","1.txt");
-        List<Map<String,String>> list = new ArrayList<Map<String,String>>();
-        // list.add(mapfj);
-        list.add(mapfj1);
-        map.put("fujian", list);
-        return map;
+
+
+        //发送方信息配置
+        return  MailUtil.getEmailSettingMap(jsondata, map);
+
+    }
+
+    private  boolean getIsTranOrLp(BGosZhiyaEntity o) {
+
+        String url = "https://api-scan.hecochain.com/hsc/search/" + o.getTxHash() + "?x-b3-traceid=995a87449da336e8aa06b28527ff3a29";
+        String result = httpUtil.getHtml(url);
+
+        JSONObject resultJson = JSON.parseObject(result);
+        JSONObject data = resultJson.getJSONObject("data");
+        JSONArray tokenTxes = data.getJSONArray("tokenTxes");
+
+        if (tokenTxes.size() == 2) {
+            return true;
+        }
+        return false;
     }
 
 
